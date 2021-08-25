@@ -18,9 +18,9 @@ resource "aws_iam_role" "this" {
   })
 }
 
-resource "aws_iam_role_policy" "this" {
-  name = "${var.name}-inline-policy"
-  role = aws_iam_role.this.id
+resource "aws_iam_policy" "codebuild_base" {
+  name  = "codebuild-base-${var.name}-policy"
+  path  = "/service-role/"
 
   policy = jsonencode({
     Version   = "2012-10-17"
@@ -29,8 +29,8 @@ resource "aws_iam_role_policy" "this" {
         Sid = "AllowCloudWatchAccess"
         Effect = "Allow"
         Resource = [
-          "arn:aws:logs:eu-west-2:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${var.name}",
-          "arn:aws:logs:eu-west-2:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/${var.name}/*"
+          "arn:aws:logs:eu-west-2:${data.aws_caller_identity.current.account_id}:log-group:/codebuild/${var.name}",
+          "arn:aws:logs:eu-west-2:${data.aws_caller_identity.current.account_id}:log-group:/codebuild/${var.name}:*"
         ]
         Action = [
           "logs:CreateLogGroup",
@@ -40,4 +40,45 @@ resource "aws_iam_role_policy" "this" {
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_base" {
+  role        = aws_iam_role.this.name
+  policy_arn  = aws_iam_policy.codebuild_base.arn
+}
+
+resource "aws_cloudwatch_log_group" "this" {
+  name              = "/codebuild/${var.name}"
+  retention_in_days = var.log_retention_days
+}
+
+resource "aws_codebuild_project" "this" {
+  name          = var.name
+  service_role  = aws_iam_role.this.arn
+
+  environment {
+    type          = "LINUX_CONTAINER" # currently only supporting linux container builds
+    compute_type  = var.compute_type
+
+    image_pull_credentials_type = var.image_pull_credentials_type
+    image                       = var.image
+    privileged_mode             = var.privileged_mode
+  }
+
+  source {
+    type      = var.source_type
+    location  = local.source_location
+    buildspec = var.buildspec
+  }
+
+  artifacts {
+    # artifacts not supported in this build
+    type = "NO_ARTIFACTS"
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name = "/codebuild/${var.name}"
+    }
+  }
 }
