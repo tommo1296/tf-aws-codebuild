@@ -9,7 +9,7 @@ resource "aws_iam_policy" "codecommit" {
       {
         Sid       = "AllowCodeCommitGitPull"
         Effect    = "Allow"
-        Resource  = "arn:aws:codecommit:eu-west-2:${data.aws_caller_identity.current.account_id}:${var.name}"
+        Resource  = "arn:aws:codecommit:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${var.name}"
         Action    = "codecommit:GitPull"
       }
     ]
