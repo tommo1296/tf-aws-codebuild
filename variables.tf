@@ -51,3 +51,9 @@ variable "log_retention_days" {
   description = "Number of days to retain logs produced by build logs"
   default     = 7
 }
+
+variable "tags" {
+  type        = map
+  description = "A map of strings to be merged with any default tags created by the module"
+  default     = {}
+}

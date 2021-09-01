@@ -16,6 +16,13 @@ resource "aws_iam_role" "this" {
       }
     ]
   })
+
+  tags = merge(
+    {
+      Name = "codebuild-${var.name}-service-role"
+    },
+    var.tags
+  )
 }
 
 resource "aws_iam_policy" "codebuild_base" {
@@ -40,6 +47,13 @@ resource "aws_iam_policy" "codebuild_base" {
       }
     ]
   })
+
+  tags = merge(
+    {
+      Name = "codebuild-base-${var.name}-policy"
+    },
+    var.tags
+  )
 }
 
 resource "aws_iam_role_policy_attachment" "codebuild_base" {
@@ -50,6 +64,13 @@ resource "aws_iam_role_policy_attachment" "codebuild_base" {
 resource "aws_cloudwatch_log_group" "this" {
   name              = "/codebuild/${var.name}"
   retention_in_days = var.log_retention_days
+
+  tags = merge(
+    {
+      Name = "/codebuild/${var.name}"
+    },
+    var.tags
+  )
 }
 
 resource "aws_codebuild_project" "this" {
@@ -81,4 +102,11 @@ resource "aws_codebuild_project" "this" {
       group_name = "/codebuild/${var.name}"
     }
   }
+
+  tags = merge(
+    {
+      Name = var.name
+    },
+    var.tags
+  )
 }
