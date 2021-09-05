@@ -57,3 +57,9 @@ variable "tags" {
   description = "A map of strings to be merged with any default tags created by the module"
   default     = {}
 }
+
+variable "packer_support" {
+  type        = bool
+  description = "Turn on Packer support if CodeBuild job is intended for use with Packer"
+  default     = false
+}
